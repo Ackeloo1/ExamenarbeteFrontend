@@ -1,0 +1,153 @@
+/*Lobbies*/
+
+.lobbies-wrapper{
+    margin-top: 80px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.lobbies-container{
+    display: flex;
+    height: 200px;
+    flex-direction: column;
+    width: 200px;
+    align-items: center;
+    justify-content: center;
+}
+
+.lobbies-title{
+    text-align: center;
+}
+
+.lobbies-create-btn{
+    border-radius: 5px;
+    border: 1px solid;
+    width: 100px;
+}
+
+.lobbies-create{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    height: 60px;
+}
+
+.lobbies-list{
+    padding: 0;
+    margin: 0;
+    background-color: grey;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+}
+.lobbies-list-item-container{
+    width: 100%;
+    display: flex;
+}
+.lobbies-list-item-lobby{
+    width: 80%;
+}
+.lobbies-list-item-pop{
+    display: flex;
+    width: 20%;
+    align-items: center;
+    justify-content: center;
+}
+
+/*LobbyPage*/
+
+.game-container{
+    padding-top: 80px;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.game-wrapper{
+    height: 600px;
+    width: 1000px;
+    border: solid 2px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.player-container{
+    flex: 0 0 auto;
+    height: 100%;
+    width: 300px;
+    background-color: lightblue;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.item-list{
+    padding: 0;
+    width: 100%;
+    height: 80%;
+    list-style-type: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item{
+    height: 50px;
+    width: 50px;
+    border: solid 1px;
+    background-color: white;
+}
+
+.item-img{
+    width: 100%;
+}
+
+.shotgun-container{
+    height: 100%;
+    width: 250px;
+    border: solid black 1px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.action-message{
+    background-color: aqua;
+    height: 50px;
+    width: 100%;
+    position: absolute;
+    top: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.shotgun-button-container{
+    height: 250px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.shotgun-button{
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.shotgun-image{
+    height: 100%;
+    width: 100%;
+}

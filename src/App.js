@@ -1,25 +1,32 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import './styles/index.css';
+import Header from './partials/Header';
+import AuthPage from './pages/AuthPage';
+import Lobbies from './partials/Lobbies';
+import HomePage from './pages/HomePage';
+import LobbyPage from './pages/LobbyPage';
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+        <Header />
+        <div className='content'>
+          <Routes>
+            
+            <Route path="/" element={<Navigate to="/home" />} />
+            <Route path="/home" element={<HomePage />} />
+
+            <Route path="/login" element={<AuthPage mode="login" />} />
+            <Route path="/register" element={<AuthPage mode="register" />} />
+
+            <Route path="/lobby/:player1/:player2" element={<LobbyPage />} /> 
+            <Route path="/lobby/:player1" element={<LobbyPage />} /> 
+
+          </Routes>
+        </div>
+    </Router>
   );
-}
+};
 
 export default App;
