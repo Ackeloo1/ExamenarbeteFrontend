@@ -16,18 +16,15 @@ const LobbyPage = () => {
     const [message, setMessage] = useState("");
     const [player1Action, setPlayer1Action] = useState(0);
     const [player2Action, setPlayer2Action] = useState(0);
-    const [gameInfo, setGameInfo] = useState(null);
     const [showOptions, setShowOptions] = useState(false);
     const [selectedPlayer, setSelectedPlayer] = useState(null);
+    const [playerTurn, setPlayerTurn] = useState(gameStart.players[0].name);
+    const [gameInfo, setGameInfo] = useState(gameStart);
 
     const connection = useRef(null);
     const messageTimeoutRef = useRef(null);
 
     useEffect(() => {
-
-        setGameInfo(gameStart);
-
-        console.log("gameStart in LobbyPage: ", gameStart);
 
         connection.current = new signalR.HubConnectionBuilder()
             .withUrl(`https://localhost:7093/gamehub`, {
@@ -62,7 +59,13 @@ const LobbyPage = () => {
 
         connection.current.on("ShootResult", (shootResult) => {
             console.log("shootResult: ", shootResult);
+            setGameInfo(shootResult);
         });
+
+        connection.current.on("PlayerTurn", (playerTurn) => {
+            console.log(playerTurn);
+            setPlayerTurn(playerTurn);
+        })
 
         connection.current.on("Error", (errorMessage) => {
             console.log(errorMessage);
@@ -71,10 +74,8 @@ const LobbyPage = () => {
 
         connection.current.start()
             .then(() => {
-                console.log("gameStart:");
-                console.log(gameStart);
-                connection.current.invoke("AddToGroup", gameStart.gameId);
-                connection.current.invoke("GetItemsForPlayers", gameStart.players, gameStart.gameId);
+                connection.current.invoke("AddToGroup", gameInfo.gameId);
+                connection.current.invoke("GetItemsForPlayers", gameInfo.players, gameInfo.gameId);
             })
             .catch(error => console.log("Error in gamehub: ", error));
 
@@ -86,7 +87,7 @@ const LobbyPage = () => {
             }
         };
 
-    }, [gameStart]);
+    }, []);
 
     const itemsToDisplay = (items) => [...items, ...Array(5 - items.length).fill(null)];
 
@@ -96,7 +97,7 @@ const LobbyPage = () => {
 
         console.log(playerItems);
 
-        connection.current.invoke("UseConsumable", gameStart.id, playerItems, itemId, player, username );
+        connection.current.invoke("UseConsumable", gameInfo.gameId, playerItems, itemId, player, username );
 
         if(player === 1){
             player1Action != null ? setPlayer1Action(itemId) : setPlayer1Action(0);
@@ -118,10 +119,19 @@ const LobbyPage = () => {
 
     const handleShotgunShoot = (player) => {
 
-        let randomBullet = gameStart.Bullets;
+        let bulletsCount = gameInfo.bullets.bullets;
+        let blanksCount = gameInfo.bullets.blanks;
+        let total = bulletsCount + blanksCount;
+        
+        const randomNumber = Math.floor(Math.random() * total) + 1;
 
-        console.log("Shoot:     ", gameStart, player, 0, player1Action);
-        connection.current.invoke("Shoot", gameStart, player, 0, player1Action);
+        let randomBullet;
+        if (randomNumber <= bulletsCount)
+            randomBullet = 1;
+        else
+            randomBullet = 0;
+
+        connection.current.invoke("Shoot", gameInfo, player, randomBullet, username, player1Action);
 
         setSelectedPlayer(null);
     }
@@ -151,21 +161,21 @@ const LobbyPage = () => {
                 <div className="shotgun-container">
                     <div className="action-message">{message}</div>
                     <div className="shotgun-button-container">
-                        <button onClick={() => toggleOptions()} className="shotgun-button">
+                        <button onClick={() => toggleOptions()} className="shotgun-button" disabled={playerTurn !== username}>
                             <img src={Shotgun} alt="hemligt" className="shotgun-image"/>
                         </button>
 
                         {showOptions && (
                             <div>
-                                <button onClick={() => selectPlayer(gameStart.players[0].name)}>Shoot Player1?</button>
-                                <button onClick={() => selectPlayer(gameStart.players[1].name)}>Shoot Player2?</button>
+                                <button onClick={() => selectPlayer(gameInfo.players[0].name)}>Shoot Player1?</button>
+                                <button onClick={() => selectPlayer(gameInfo.players[1].name)}>Shoot Player2?</button>
                             </div>
                         )}
                     </div>
                 </div>
 
                 <div className="player-container">
-                    <h3>{gameStart.players[1].name}</h3>
+                    <h3>{gameInfo.players[1].name}</h3>
                         <ul className="item-list">
                             {itemsToDisplay(player2Items).map((item, index) => (
                                 <li key={index} className="item">
