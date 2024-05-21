@@ -3,31 +3,79 @@ import { useLocation } from "react-router-dom";
 import Shotgun from '../images/shotgunlogo.png';
 import { useAuth } from '../contexts/AuthContext';
 import * as signalR from '@microsoft/signalr';
+import PlayerContainer from '../partials/PlayerContainer'
+import ShotgunContainer from "../partials/ShotgunContainer";
+import Score from "../partials/Score";
+import { useGameContextInfo } from "../contexts/GameInfoContext";
+import '../styles/globals.css';
 
 const LobbyPage = () => {
 
+    const apiUrl = 'https://localhost:7093/ShotgunRoulette/Player';
+    const { userData } = useAuth();
+    const accessToken = userData.jwtToken;
+
     const { state } = useLocation();
     const { gameStart } = state;
-    const { userData } = useAuth();
     const { username } = userData;
+    const { setGameContextInfo } = useGameContextInfo();
 
     const [player1Items, setPlayer1Items] = useState([]);
     const [player2Items, setPlayer2Items] = useState([]);
     const [message, setMessage] = useState("");
-    const [player1Action, setPlayer1Action] = useState(0);
-    const [player2Action, setPlayer2Action] = useState(0);
+    const [playerAction, setPlayerAction] = useState(0);
     const [showOptions, setShowOptions] = useState(false);
-    const [selectedPlayer, setSelectedPlayer] = useState(null);
     const [playerTurn, setPlayerTurn] = useState(gameStart.players[0].name);
     const [gameInfo, setGameInfo] = useState(gameStart);
+    const [roundEndMessage, setRoundEndMessage] = useState("");
+    const [shuffledBullets, setShuffledBullets] = useState([]);
+    const [revealBullet, setRevealBullet] = useState(false);
+
+    const [bulletType, setBulletType] = useState(null);
+
 
     const connection = useRef(null);
     const messageTimeoutRef = useRef(null);
+    const winnerTimeoutRef = useRef(null);
+
+    //Shufflar array av kulor för förvirrning för spelare.
+    const shuffleBullets = (gameInfo) => {
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+    
+        const combinedItems = [];
+        for (const key in gameInfo.bullets) {
+            combinedItems.push(...Array.from({ length: gameInfo.bullets[key] }).fill(key));
+        }
+    
+        return shuffleArray(combinedItems);
+    }
+
+    useEffect(() => {
+        if (gameStart) {
+            setGameInfo(gameStart);
+        }
+    }, [gameStart, setGameInfo]);
 
     useEffect(() => {
 
+        setGameContextInfo(gameStart);
+        setShuffledBullets(shuffleBullets(gameInfo));
+
+        // Tömmer kulor-listan efter 3 sekunder
+        const timeout = setTimeout(() => {
+            setShuffledBullets([]);
+        }, 3000);
+
+        console.log("LobbyPage jwt: ", accessToken);
+        //Hub connection
         connection.current = new signalR.HubConnectionBuilder()
-            .withUrl(`https://localhost:7093/gamehub`, {
+            .withUrl(`https://localhost:7093/gamehub?authorization=${accessToken}`, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
             })
@@ -35,51 +83,99 @@ const LobbyPage = () => {
             .build();
 
         connection.current.on("GameStartItems", (playerItems) => {
-            console.log("Items received: ", playerItems);
+            console.log("gameStartItems info: ", playerItems);
             setPlayer1Items(playerItems.player1Items);
             setPlayer2Items(playerItems.player2Items);
         });
 
-        connection.current.on("ItemUsed", (newItems) => {
-            setPlayer1Items(newItems.player1Items);
-            setPlayer2Items(newItems.player2Items);
-            console.log("newItems: ", newItems);
-        });
+        connection.current.on("ItemUsed", (data) => {
+            setPlayer1Items(data.newItems.player1Items);
+            setPlayer2Items(data.newItems.player2Items);
+            setMessage(data.message);
 
-        connection.current.on("ItemUsedMessage", (message) => {
-            console.log("message", message);
-            setMessage(message);
+            if (data.revealBullet) {
+                console.log("Magnifying glass was used by ", username);
+            }
 
             clearTimeout(messageTimeoutRef.current);
 
+            //Tömmer "ItemUsed" meddelandet efter 3 sekunder
             messageTimeoutRef.current = setTimeout(() => {
                 setMessage("");
             }, 3000);
-        }); 
-
-        connection.current.on("ShootResult", (shootResult) => {
-            console.log("shootResult: ", shootResult);
-            setGameInfo(shootResult);
         });
 
-        connection.current.on("PlayerTurn", (playerTurn) => {
-            console.log(playerTurn);
-            setPlayerTurn(playerTurn);
-        })
+        connection.current.on("ShootResult", (data) => {
+            console.log("shootResult: ", data);
+            setGameInfo(data.gameResult);
+            setPlayerTurn(data.turn);
+
+            //Hämta nya items på ny runda
+            if (data.newRound) {
+                setPlayer1Items(prevPlayer1Items => {
+                    setPlayer2Items(prevPlayer2Items => {
+                        console.log("New Round: ", prevPlayer1Items, prevPlayer2Items);
+                        connection.current.invoke("GetItemsForPlayers", gameInfo.players, gameInfo.gameId, prevPlayer1Items, prevPlayer2Items);
+                        return prevPlayer2Items; // Return value to maintain the correct state
+                    });
+                    return prevPlayer1Items; // Return value to maintain the correct state
+                });
+
+                setShuffledBullets(shuffleBullets(data.gameResult));
+                // Tömmer kulor-listan efter 3 sekunder
+                const timeout = setTimeout(() => {
+                    setShuffledBullets([]);
+                }, 3000);
+            }
+
+            //Hämtar nästa laddade kula, behövs om magnifying glass ska fungera
+            connection.current.invoke("GenerateBullet", data.gameResult);
+        });
+
+        connection.current.on("GameResult", (result) => {
+            
+            const url = apiUrl + '/AddScore';
+            console.log(result.winnerName);
+            setRoundEndMessage(`${result.winnerName} won the round!`);
+
+            clearTimeout(winnerTimeoutRef.current);
+
+            winnerTimeoutRef.current = setTimeout(() => {
+                setRoundEndMessage("");
+            }, 3000);
+
+            //uppdatera vinnares och förlorares "score"
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    WinnerName: result.winnerName,
+                    LoserName: result.loserName
+                }),
+            });
+        });
+        
+        connection.current.on("bulletType", (data) => {
+            setBulletType(data);
+        });
 
         connection.current.on("Error", (errorMessage) => {
             console.log(errorMessage);
             alert(errorMessage);
-        })
+        });
 
         connection.current.start()
             .then(() => {
                 connection.current.invoke("AddToGroup", gameInfo.gameId);
-                connection.current.invoke("GetItemsForPlayers", gameInfo.players, gameInfo.gameId);
+                connection.current.invoke("GetItemsForPlayers", gameInfo.players, gameInfo.gameId, player1Items, player2Items);
+                connection.current.invoke("GenerateBullet", gameInfo);
             })
             .catch(error => console.log("Error in gamehub: ", error));
 
         return () => {
+            clearTimeout(timeout)
             if (connection.current.state === signalR.HubConnectionState.Connected) {
                 connection.current.stop()
                     .then(() => console.log("SignalR connection stopped"))
@@ -89,26 +185,27 @@ const LobbyPage = () => {
 
     }, []);
 
-    const itemsToDisplay = (items) => [...items, ...Array(5 - items.length).fill(null)];
-
     const handleItemUse = (itemId, player) => {
+
+        setRoundEndMessage("");
 
         var playerItems = {player1Items, player2Items};
 
-        console.log(playerItems);
-
         connection.current.invoke("UseConsumable", gameInfo.gameId, playerItems, itemId, player, username );
 
-        if(player === 1){
-            player1Action != null ? setPlayer1Action(itemId) : setPlayer1Action(0);
-        }
-        else if(player === 2){
-            player2Action != null ? setPlayer2Action(itemId) : setPlayer2Action(0);
+        console.log("Item used: ", itemId);
+
+        //Sätter useState för "saw" item
+        playerAction != null ? setPlayerAction(itemId) : setPlayerAction(0);
+
+        //Sätter useState att visa kula när "Magnifying glass" används
+        if (itemId === 2) {
+            setRevealBullet(true);
         }
     };
 
+    //välj spelare att skjuta
     const selectPlayer = (player) => {
-        setSelectedPlayer(player);
         handleShotgunShoot(player);
         setShowOptions(false);
     }
@@ -118,78 +215,55 @@ const LobbyPage = () => {
     }
 
     const handleShotgunShoot = (player) => {
+        connection.current.invoke("Shoot", gameInfo, player, username, bulletType, playerAction);
+        setPlayerAction(0);
+        setRevealBullet(null);
+        console.log(player, " shot a ", bulletType === 1 ? "Bullet" : "Blank");
+        setMessage(username + ` shot a ${bulletType === 1 ? "Bullet!" : "Blank!"}`);
 
-        let bulletsCount = gameInfo.bullets.bullets;
-        let blanksCount = gameInfo.bullets.blanks;
-        let total = bulletsCount + blanksCount;
-        
-        const randomNumber = Math.floor(Math.random() * total) + 1;
-
-        let randomBullet;
-        if (randomNumber <= bulletsCount)
-            randomBullet = 1;
-        else
-            randomBullet = 0;
-
-        connection.current.invoke("Shoot", gameInfo, player, randomBullet, username, player1Action);
-
-        setSelectedPlayer(null);
+        messageTimeoutRef.current = setTimeout(() => {
+            setMessage("");
+        }, 3000);
     }
     
     return(
         <div className="game-container">
             <div className="game-wrapper">
 
-                <div className="player-container">
-                    <h3>{gameStart.players[0].name}</h3>
-                        <ul className="item-list">
-                            {itemsToDisplay(player1Items).map((item, index) => (
-                                <li key={index} className="item">
-                                    {item ? (
-                                        <button onClick={() => handleItemUse(item.id, 1)} className="item-button" disabled={username !== gameStart.players[0].name}>
-                                            <img src={require(`/src/images/item_${item.id}.png`)} alt={item.name} className="item-img"/>
-                                        </button>
-                                    ) : (
-                                        <div className="empty-item"></div>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    
-                </div>
+                <PlayerContainer 
+                    playerInfo={gameInfo.players[0]} 
+                    playerItems={player1Items} 
+                    handleItemUse={handleItemUse} 
+                    username={username} 
+                    gameStart={gameStart}
+                    revealBullet={revealBullet}
+                    bulletType={bulletType}
+                    playerTurn={playerTurn}
+                />
 
-                <div className="shotgun-container">
-                    <div className="action-message">{message}</div>
-                    <div className="shotgun-button-container">
-                        <button onClick={() => toggleOptions()} className="shotgun-button" disabled={playerTurn !== username}>
-                            <img src={Shotgun} alt="hemligt" className="shotgun-image"/>
-                        </button>
+                <ShotgunContainer
+                    roundEndMessage={roundEndMessage}
+                    message={message}
+                    showOptions={showOptions}
+                    toggleOptions={toggleOptions}
+                    shuffledBullets={shuffledBullets}
+                    gameInfo={gameInfo}
+                    selectPlayer={selectPlayer}
+                    username={username}
+                    playerTurn={playerTurn}
+                    Shotgun={Shotgun}
+                />
 
-                        {showOptions && (
-                            <div>
-                                <button onClick={() => selectPlayer(gameInfo.players[0].name)}>Shoot Player1?</button>
-                                <button onClick={() => selectPlayer(gameInfo.players[1].name)}>Shoot Player2?</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="player-container">
-                    <h3>{gameInfo.players[1].name}</h3>
-                        <ul className="item-list">
-                            {itemsToDisplay(player2Items).map((item, index) => (
-                                <li key={index} className="item">
-                                    {item ? (
-                                        <button onClick={() => handleItemUse(item.id, 2)} className="item-button" disabled={username !== gameStart.players[1].name}>
-                                            <img src={require(`/src/images/item_${item.id}.png`)} alt={item.name} className="item-img"/>
-                                        </button>
-                                    ) : (
-                                        <div className="empty-item"></div>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                </div>
+                <PlayerContainer 
+                    playerInfo={gameInfo.players[1]} 
+                    playerItems={player2Items} 
+                    handleItemUse={handleItemUse} 
+                    username={username} 
+                    gameStart={gameStart} 
+                    revealBullet={revealBullet}
+                    bulletType={bulletType}
+                    playerTurn={playerTurn}
+                />
 
             </div>
         </div>
@@ -197,68 +271,3 @@ const LobbyPage = () => {
 }
 
 export default LobbyPage;
-
-// const consumeItem = (itemId, player) => {
-//     connection.current.invoke("UseConsumable", itemId, gameStart.gameId)
-//         .then(() => {
-//             removeItem(itemId, player);
-//         })
-//         .catch(error => console.error("Error invoking UseConsumable method: ", error));
-// };
-
-// if (gameStart) {
-    
-    //     const playerItems = gameStart.playerItems;
-    
-    //     const keys = Object.keys(playerItems);
-    
-    //     if (keys.length >= 2 && Array.isArray(playerItems[keys[0]]) && Array.isArray(playerItems[keys[1]])) {
-        
-        //         const player1 = {
-            //             name: keys[0],
-            //             items: playerItems[keys[0]] || []
-            //         };
-            
-            //         const player2 = {
-                //             name: keys[1],
-                //             items: playerItems[keys[1]] || []
-        //         };
-
-        //         setPlayer1Info(player1);
-        //         setPlayer2Info(player2);
-
-        //     } else {
-        //         console.log("player error");
-        //     }
-        // }
-
-        // const fetchItems = async () => {
-        //     try {
-        //         const response = await fetch(apiUrl);
-        //         if (!response.ok) {
-        //             throw new Error("Error fetching items");
-        //         }
-        //         const data = await response.json();
-        //         return data;
-        //     } catch (error) {
-        //         console.error("Error fetching items: ", error);
-        //         return [];
-        //     }
-        // };
-
-        // const fetchDataForPlayers = async () => {
-
-        //     let player1Data = JSON.parse(localStorage.getItem('player1Items'));
-        //     let player2Data = JSON.parse(localStorage.getItem('player2Items'));
-
-        //     player1Data = await fetchItems();
-        //     localStorage.setItem('player1Items', JSON.stringify(player1Data))
-        
-        //     player2Data = await fetchItems();
-        //     localStorage.setItem('player2Items', JSON.stringify(player2Data))
-            
-        //     setPlayer1Items(player1Data);
-        //     setPlayer2Items(player2Data);
-        // };
-
-        // fetchDataForPlayers();

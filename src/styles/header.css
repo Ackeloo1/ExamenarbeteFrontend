@@ -4,9 +4,9 @@
     display: flex;
     justify-content: space-between;
     border-bottom: solid;
-    height: 80px;
+    height: 100px;
     align-items: center;
-    background-color: blue;
+    background-color: var(--red-background);
     box-sizing: border-box;
 }
 
@@ -14,23 +14,34 @@
 .header-welcome-container{
     display: flex;
     align-items: center;
-    border: solid;
     height: 30px;
     margin-right: 20px;
 }
 
+.header-welcome-message{
+    font-size: 20px;
+}
+
 .account-button{
-    width: 70px;
-    height: 23px;
+    width: 90px;
+    height: 40px;
     border: none;
+    margin: 10px;
+    font-size: medium;
+    font-weight: 550;
+    color: white;
+    background-color: black;
+}
+
+.account-button:hover{
+    cursor: pointer;
 }
 
 .header-logo-container{
-    width: 60px;
-    height: 60px;
-    margin-left: 10px;
-    border: solid 2px;
-    border-radius: 30px;
+    width: 70px;
+    height: 70px;
+    border: solid 3px black;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -38,5 +49,18 @@
 
 .home-logo{
     height: 80%;
+}
 
+.header-logo-wrapper{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 15px;
+}
+
+.header-title{
+    margin-left: 20px;
+    font-weight: 600;
+    font-size: 20px;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
 }

@@ -52,27 +52,29 @@ const AuthPage = ({ mode }) => {
     return(
         <div className="auth-container">
             <form onSubmit={handleSubmit} className="auth-wrapper">
-                <div>{mode === 'login' ? 'Login' : 'Register'}</div>
+                <div className="auth-mode-label">{mode === 'login' ? 'Login' : 'Register'}</div>
 
                 <div className="auth-inputs">
                     <div className="input-container">
-                        <label>Username:</label>
+                        <label className="auth-info-label">Username:</label>
                         <input
+                            className="auth-input"
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
                     <div className="input-container">
-                        <label>Password:</label>
+                        <label className="auth-info-label">Password:</label>
                         <input
+                            className="auth-input"
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
                 </div>
-                <button type="submit">{mode === 'login' ? 'Login' : 'Register'}</button>
+                <button type="submit" className="auth-submit-button">{mode === 'login' ? 'Login' : 'Register'}</button>
             </form>
         </div>
     );

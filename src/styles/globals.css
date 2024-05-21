@@ -1,0 +1,4 @@
+:root {
+    --red-background: rgb(158, 37, 37);
+    --black-background: linear-gradient(to left, rgb(71, 67, 67), rgb(27, 25, 25)) right;
+  }

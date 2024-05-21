@@ -5,12 +5,12 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [userData, setUserData] = useState({ username: '', JwtToken: '' });
 
-    useEffect(() => {
-        const storedToken = localStorage.getItem('jwtToken');
-        if (storedToken) {
-            setUserData({ ...userData, jwtToken: storedToken });
-        }
-    }, []);
+    // useEffect(() => {
+    //     const storedToken = localStorage.getItem('jwtToken');
+    //     if (storedToken) {
+    //         setUserData({ ...userData, jwtToken: storedToken });
+    //     }
+    // }, []);
 
     const login = (username, jwtToken) => {
         localStorage.setItem('jwtToken', jwtToken);

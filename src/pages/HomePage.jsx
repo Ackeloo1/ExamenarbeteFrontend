@@ -7,10 +7,11 @@ const HomePage = () => {
 
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const { userData } = useAuth();
 
     useEffect(() => {
         
-        const jwtToken = localStorage.getItem('jwtToken');
+        const jwtToken = userData.jwtToken;
 
         if (jwtToken) {
             console.log("JWT TOKEN: ", jwtToken);

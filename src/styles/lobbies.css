@@ -1,19 +1,29 @@
 /*Lobbies*/
 
 .lobbies-wrapper{
-    margin-top: 80px;
     height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
+    background: var(--black-background);
+}
+
+.lobbies-title{
+    font-size: 35px;
+    margin-bottom: 15px;
+}
+
+.lobbies-login-message{
+    font-size: 18px;
+    margin-bottom: 5px;
 }
 
 .lobbies-container{
     display: flex;
-    height: 200px;
+    height: 300px;
     flex-direction: column;
-    width: 200px;
+    width: 300px;
     align-items: center;
     justify-content: center;
 }
@@ -24,8 +34,17 @@
 
 .lobbies-create-btn{
     border-radius: 5px;
-    border: 1px solid;
-    width: 100px;
+    border: none;
+    width: 130px;
+    height: 30px;
+    font-size: medium;
+    font-weight: 500;
+    background-color: black;
+    color: white;
+}
+
+.lobbies-create-btn:hover{
+    cursor: pointer;
 }
 
 .lobbies-create{
@@ -40,18 +59,30 @@
 .lobbies-list{
     padding: 0;
     margin: 0;
-    background-color: grey;
+    background-color: var(--red-background);
     height: 100%;
     width: 100%;
     align-items: center;
+    border: solid 3px;
+    border-radius: 5px;
 }
 .lobbies-list-item-container{
     width: 100%;
     display: flex;
 }
 .lobbies-list-item-lobby{
-    width: 80%;
+    width: 100%;
+    height: 30px;
+    font-size: 16px;
+    margin: 2px;
+    border-radius: 5px;
 }
+
+.lobbies-list-item-lobby:hover{
+    cursor: pointer;
+    background-color: lightgray;
+}
+
 .lobbies-list-item-pop{
     display: flex;
     width: 20%;
@@ -68,6 +99,7 @@
     justify-content: center;
     align-items: center;
     box-sizing: border-box;
+    background: var(--black-background);
 }
 
 .game-wrapper{
@@ -78,52 +110,37 @@
     justify-content: space-between;
 }
 
-.player-container{
-    flex: 0 0 auto;
-    height: 100%;
-    width: 300px;
-    background-color: lightblue;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-}
-
-.item-list{
-    padding: 0;
-    width: 100%;
-    height: 80%;
-    list-style-type: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.item{
-    height: 50px;
-    width: 50px;
-    border: solid 1px;
-    background-color: white;
-}
-
-.item-img{
-    width: 100%;
-}
-
 .shotgun-container{
     height: 100%;
-    width: 250px;
-    border: solid black 1px;
+    width: 100%;
     position: relative;
     display: flex;
+    align-items: center;
     flex-direction: column;
     justify-content: center;
+    background-color: var(--red-background);
+}
+
+.round-end-message{
+    height: 50px;
+    width: 80%;
+    position: absolute;
+    top: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 10px;
+    color: var(--red-background);
+}
+
+.round-end-message{
+    font-size: 15px;
 }
 
 .action-message{
-    background-color: aqua;
     height: 50px;
-    width: 100%;
+    width: 80%;
     position: absolute;
     top: 100px;
     display: flex;
@@ -134,10 +151,11 @@
 
 .shotgun-button-container{
     height: 250px;
-    width: 100%;
+    width: 250px;
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
 }
 
 .shotgun-button{
@@ -145,9 +163,50 @@
     width: 100%;
     margin: 0;
     padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.shotgun-button:hover{
+    cursor: pointer;
 }
 
 .shotgun-image{
     height: 100%;
     width: 100%;
+}
+
+.bullets-message{
+    position: absolute;
+    bottom: 120px;
+    display: flex;
+}
+
+.bullet-img{
+    margin-left: 3px;
+    margin-right: 3px;
+}
+
+.shoot-options-container{
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    bottom: 20px;
+}
+
+.shoot-options-button{
+    width: 200px;
+    height: 40px;
+    margin-top: 20px;
+    position: relative;
+    border: none;
+    font-size: medium;
+    font-weight: 400;
+    color: white;
+    background-color: black;
+    border-radius: 5px;
+}
+
+.shoot-options-button:hover{
+    cursor: pointer;
 }
