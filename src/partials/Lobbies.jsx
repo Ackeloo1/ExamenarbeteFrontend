@@ -102,13 +102,13 @@ const Lobbies = () => {
 
     return(
         <div className='lobbies-wrapper'>
-            <h2>Lobbies</h2>
+            <div className='lobbies-title'>Lobbies</div>
             <div className='lobbies-container'>
                 <div className='lobbies-create'>
                     {playerName ? (
                         <button onClick={createLobby} className='lobbies-create-btn'>Create Lobby</button>
                     ) : (
-                        <div>You need to log in to create a lobby.</div>
+                        <div className='lobbies-login-message'>You need to log in to create a lobby.</div>
                     )}
                 </div>
                 {isConnected ? (
@@ -122,7 +122,6 @@ const Lobbies = () => {
                                             <button key={lobby.gameId} className='lobbies-list-item-lobby' onClick={() => joinLobby(lobby.gameId)}>
                                                 {lobby.creator}'s Lobby
                                             </button>
-                                            {/* <div className='lobbies-list-item-pop'>{lobby.playerCount}/2</div> */}
                                         </div>
                                     ))}
                                     </ul>

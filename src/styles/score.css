@@ -1,0 +1,19 @@
+.score-container{
+    position: absolute;
+    width: 80%;
+    top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.score-section{
+    display: flex;
+    flex-direction: column;
+}
+
+.score-score{
+    width: 60px;
+    display: flex;
+    justify-content: space-between;
+}

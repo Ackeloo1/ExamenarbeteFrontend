@@ -7,12 +7,18 @@ import HomePage from './pages/HomePage';
 import AuthPage from './pages/AuthPage';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/index.css';
+import { GameInfoProvider } from './contexts/GameInfoContext';
+import { LobbyHubProvider } from './contexts/LobbyHubContext';
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
     <AuthProvider>
-        <App />
+        <GameInfoProvider>
+            <LobbyHubProvider>
+                <App />
+            </LobbyHubProvider>
+        </GameInfoProvider>
     </AuthProvider>
 );
 

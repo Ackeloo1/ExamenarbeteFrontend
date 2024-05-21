@@ -7,6 +7,7 @@
     align-items: center;
     justify-content: center;
     border: solid;
+    background-color: var(--red-background);
 }
 
 .auth-container{
@@ -14,7 +15,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: solid blue;
+    background: var(--black-background);
 }
 
 .auth-inputs{
@@ -23,6 +24,7 @@
     justify-content: center;
     align-items: center;
     width: 200px;
+    margin-top: 20px;
 }
 
 .input-container{
@@ -32,4 +34,39 @@
 .input-container>input{
     width: 100%;
     box-sizing: border-box;
+}
+
+.auth-submit-button{
+    width: 90px;
+    height: 40px;
+    border: none;
+    margin: 10px;
+    font-size: medium;
+    font-weight: 550;
+    color: white;
+    background-color: black;
+    border-radius: 10px;
+}
+
+.auth-submit-button:hover{
+    cursor: pointer;
+}
+
+.auth-mode-label{
+    font-size: 25px;
+}
+
+.auth-info-label{
+    font-size: 17px;
+}
+
+.auth-input{
+    border: solid black 2px;
+    border-radius: 5px;
+    height: 30px;
+    background-color: beige;
+}
+
+.auth-input:focus{
+    outline-style: solid;
 }
